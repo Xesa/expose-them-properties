@@ -22,7 +22,8 @@ static func get_exportable_properties(node : Node) -> Dictionary:
 	var node_properties := {"node" : node, "node_name": node.name, "properties" : {}}
 
 	for p in node.get_property_list():
-		if p.has("hint_string") and p.hint_string.contains(MAIN.EXPORTABLE_PROPERTY_HINT):
+		if p.has("hint_string") and \
+			(p.hint_string.contains(ETP.PROPERTY) or p.hint_string.contains(ETP.NODEPATH)):
 			node_properties["properties"][p.name] = p
 
 	return node_properties
@@ -75,3 +76,13 @@ static func get_hint_or_null(hint : String, index : int) -> Variant:
 	return str_to_var(value)
 		
 	
+
+static func split_stringname(string : StringName) -> Array[StringName]:
+
+	var array : Array[StringName] = []
+	var split := string.split(",", false)
+
+	for s : String in split:
+		array.append(StringName(s))
+
+	return array

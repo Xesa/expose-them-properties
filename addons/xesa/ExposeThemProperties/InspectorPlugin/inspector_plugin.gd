@@ -23,12 +23,11 @@ func _can_handle(object: Object) -> bool:
 func _parse_begin(object : Object) -> void:
 
 	# Returns if the selected node is not an importer
-	if HELPERS.get_object_property(object, MAIN.IMPORTER_NODE_FLAG).size() == 0 and !object.has_meta(MAIN.IMPORTER_NODE_FLAG):
+	if !object.get(MAIN.IMPORTER_NODE_FLAG) and !object.has_meta(MAIN.IMPORTER_NODE_FLAG):
 		return
 
 	# Iterates every child and finds their exportable properties
 	var properties := HELPERS.scan_children_nodes(object)
-
 	for node_info in properties:
 		_add_property_editors(node_info)
 
@@ -60,13 +59,9 @@ func _add_property_editors(node_info : Dictionary) -> void:
 			4: editor_property = STRING_PROPERTY.new(node, properties[name])
 			5: editor_property = VECTOR2_PROPERTY.new(node, properties[name])
 			9: editor_property = VECTOR3_PROPERTY.new(node, properties[name])
-
-			24: 
-				if properties[name].hint_string == MAIN.EXPORTABLE_NODEPATH_HINT:
-					editor_property = NODEPATH_PROPERTY.new(node, properties[name])
-				else:
-					editor_property = RESOURCE_PROPERTY.new(node, properties[name])
-
+			22: editor_property = NODEPATH_PROPERTY.new(node, properties[name])
+			24: editor_property = RESOURCE_PROPERTY.new(node, properties[name])
+					
 			_: continue
 		
 		# Finally, adds the PropertyEditor to the UI
