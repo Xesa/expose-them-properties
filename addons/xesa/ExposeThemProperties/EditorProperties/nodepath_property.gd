@@ -5,27 +5,30 @@ const HELPERS := preload("../InspectorPlugin/helpers.gd")
 
 func _init(object : Node, property : Dictionary):
 	var nodepath := NodePathControl.new(object, property)
-	super(object, property, nodepath, "node", "node_changed")
+	super(object, property, nodepath, "path", "path_changed")
 
 
 func update_control_property() -> void:
-	control.node = get_current_value()
-	control.toggle_select_button(control.node != null)
+	control.path = get_current_value()
+	control.toggle_select_button(control.path != NodePath(""))
 
 
 class NodePathControl extends EditorProperty:
 
+	var object : Node
 	var container : HBoxContainer 
 	var select_button : Button
 	var clean_button : Button
 	var property_type : Array[StringName]
 
-	var node : Node
+	var path : NodePath
 
-	signal node_changed(new_node : Node)
+	signal path_changed(new_path : NodePath)
 
 
-	func _init(object : Node, property : Dictionary) -> void:
+	func _init(_object : Node, property : Dictionary) -> void:
+
+		object = _object
 
 		# Sets the property type string
 		var property_name = property["name"]
@@ -34,7 +37,9 @@ class NodePathControl extends EditorProperty:
 		var hint_string = object_property.get("hint_string")
 
 		if hint_string != null and hint_string != "":
-			property_type = [hint_string]
+			var splitted_hint := HELPERS.split_stringname(hint_string)
+			splitted_hint.pop_at(0)
+			property_type = splitted_hint
 
 		# Sets the UI
 		container = HBoxContainer.new()
@@ -58,29 +63,34 @@ class NodePathControl extends EditorProperty:
 
 
 	func _open_selector() -> void:
-		EditorInterface.popup_node_selector(set_node, property_type)
+		if path != NodePath(""):
+			EditorInterface.popup_node_selector(set_node, property_type, object.get_node(path))
+		else:
+			EditorInterface.popup_node_selector(set_node, property_type)
+		
 
 
-	func set_node(nodepath) -> void:
-		if nodepath == NodePath(""):
+	func set_node(new_path) -> void:
+		if new_path == NodePath(""):
 			return
 
-		node = EditorInterface.get_edited_scene_root().get_node(nodepath)
+		var node := get_tree().edited_scene_root.get_node(new_path)
+		path = object.get_path_to(node)
 		toggle_select_button(true)
-		node_changed.emit(node)
-		emit_changed(get_edited_property(), node)
+		path_changed.emit(path)
+		emit_changed(get_edited_property(), path)
 
 
 	func clean_node() -> void:
-		node = null
+		path = NodePath("")
 		toggle_select_button(false)
-		node_changed.emit(node)
-		emit_changed(get_edited_property(), node)
+		path_changed.emit(path)
+		emit_changed(get_edited_property(), path)
 
 	
 	func toggle_select_button(toggle : bool) -> void:
 		if toggle:
-			select_button.text = node.name
+			select_button.text = path.get_name(path.get_name_count() - 1)
 			select_button.add_theme_color_override("font-color", Color.LIGHT_BLUE)
 			clean_button.disabled = false
 		else:

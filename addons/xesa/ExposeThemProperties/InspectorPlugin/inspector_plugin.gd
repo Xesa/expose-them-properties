@@ -5,6 +5,7 @@ const MAIN := preload("main.gd")
 const HELPERS := preload("helpers.gd")
 
 const CHECKBOX_PROPERTY := preload("../EditorProperties/checkbox_property.gd")
+const ENUM_PROPERTY := preload("../EditorProperties/enum_property.gd")
 const NODEPATH_PROPERTY := preload("../EditorProperties/nodepath_property.gd")
 const NUMBER_PROPERTY := preload("../EditorProperties/number_property.gd")
 const RESOURCE_PROPERTY := preload("../EditorProperties/resource_property.gd")
@@ -46,24 +47,33 @@ func _add_property_editors(node_info : Dictionary) -> void:
 	# Iterates every property from the exportable resource and checks if the current object has them
 	for name in properties.keys():
 
-		if MAIN.DEBUG:
-			print("Property %s (%d)" % [name, properties[name].type])
+		var property : Dictionary = properties[name]
 
+		if MAIN.DEBUG:
+			print("Property %s (%d)" % [name, property.type])
+
+		# Creates an EditorProperty based on the type and hint
 		var editor_property : EditorProperty
 		
-		# If it's a basic property, creates a custom PropertyEditor for that property
-		match properties[name].type:
-			1: editor_property = CHECKBOX_PROPERTY.new(node, properties[name])
-			2: editor_property = NUMBER_PROPERTY.new(node, properties[name])
-			3: editor_property = NUMBER_PROPERTY.new(node, properties[name])
-			4: editor_property = STRING_PROPERTY.new(node, properties[name])
-			5: editor_property = VECTOR2_PROPERTY.new(node, properties[name])
-			9: editor_property = VECTOR3_PROPERTY.new(node, properties[name])
-			22: editor_property = NODEPATH_PROPERTY.new(node, properties[name])
-			24: editor_property = RESOURCE_PROPERTY.new(node, properties[name])
-					
-			_: continue
-		
+		if property.etp_type == ETP.PROPERTY:
+
+			match property.type:
+				1: editor_property = CHECKBOX_PROPERTY.new(node, property)
+				2: editor_property = NUMBER_PROPERTY.new(node, property)
+				3: editor_property = NUMBER_PROPERTY.new(node, property)
+				4: editor_property = STRING_PROPERTY.new(node, property)
+				5: editor_property = VECTOR2_PROPERTY.new(node, property)
+				9: editor_property = VECTOR3_PROPERTY.new(node, property)
+				22: editor_property = NODEPATH_PROPERTY.new(node, property)
+				24: editor_property = RESOURCE_PROPERTY.new(node, property)
+				_: continue
+
+		elif property.etp_type == ETP.ENUM and property.type == 2:
+			editor_property = ENUM_PROPERTY.new(node, property)
+
+		elif property.etp_type == ETP.NODEPATH and property.type == 22:
+			editor_property = NODEPATH_PROPERTY.new(node, property)
+
 		# Finally, adds the PropertyEditor to the UI
 		if editor_property:
 			add_property_editor(name, editor_property, true, name.capitalize())

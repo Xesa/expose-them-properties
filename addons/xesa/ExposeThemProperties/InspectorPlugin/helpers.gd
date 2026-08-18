@@ -22,10 +22,33 @@ static func get_exportable_properties(node : Node) -> Dictionary:
 	var node_properties := {"node" : node, "node_name": node.name, "properties" : {}}
 
 	for p in node.get_property_list():
-		if p.has("hint_string") and \
-			(p.hint_string.contains(ETP.PROPERTY) or p.hint_string.contains(ETP.NODEPATH)):
-			node_properties["properties"][p.name] = p
+		if p.has("hint_string"):
+			
+			if p.hint_string.contains(ETP.PROPERTY):
+				p["etp_type"] = ETP.PROPERTY
+				node_properties["properties"][p.name] = p
+				
+			elif p.hint_string.contains(ETP.ENUM):
+				var parts : PackedStringArray = p.hint_string.split(":")
+				
+				if parts.size() > 1:
+					
+					var enum_type := parts[1]
+					var enum_items := node.get("StatusEffect")
+					
+					p["etp_type"] = ETP.ENUM
+					p["etp_enum_items"] = enum_items
 
+					node_properties["properties"][p.name] = p
+				
+			else:
+				var regex := RegEx.new()
+				regex.compile(r"(?<![\p{L}\p{N}])ETP(?![\p{L}\p{N}])")
+			
+				if regex.search(p.hint_string):
+					p["etp_type"] = ETP.NODEPATH
+					node_properties["properties"][p.name] = p
+				
 	return node_properties
 
 
