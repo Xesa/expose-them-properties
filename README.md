@@ -1,10 +1,12 @@
 # Expose Them Properties!
 This is a small plugin that exposes child properties onto parent nodes by setting up property hints.
 
-![Preview](images/image1.png)
-
 ### Use case
 Let's say you have a `Character` class that may include several nodes such as `HealthComponent` or `AttackComponent`. You'd like to expose those components' properties onto the owner node so you can tweak those values for each instance. The _Expose Them Properties!_ plugin allows you to do that without compromising your code.
+
+<p align="center">
+  <img src="images/image1.png" alt="Preview">
+</p>
 
 # How to use it
 For clarity sake, let's say you have the following structure:
